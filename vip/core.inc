@@ -89,7 +89,6 @@ public GetVIPCoords(Status)
 			}
 		}
 	}
-	return false; // Can't happen, ever.
 }
 
 public bool:DoWeHaveTheCoords()
@@ -109,7 +108,7 @@ public bool:DoWeHaveTheCoords()
 
 public FireRoundEnd(Status, Attacker)
 {
-	switch (Status)
+	switch(Status)
 	{
 		case 0: // Disconnection / Team Change.
 		{
@@ -144,7 +143,7 @@ public FireRoundEnd(Status, Attacker)
 
 public bool:FindNewVIP(Status)
 {
-	switch (Status)
+	switch(Status)
 	{
 		case 0: 
 		{
@@ -154,7 +153,7 @@ public bool:FindNewVIP(Status)
 		
 		case 1:
 		{
-			switch (GetActualTeamCount(3))
+			switch(GetActualTeamCount(3))
 			{
 				case 0:
 				{
@@ -174,7 +173,7 @@ public bool:FindNewVIP(Status)
 				{
 					for (new i = 1; i <= MaxClients; i++)
 					{
-						if (IsValidClient(i, 0) && GetClientTeam(i) == 3)
+						if(IsValidClient(i, 0) && GetClientTeam(i) == 3)
 						{
 							SetVIPIndex(i);
 							CreateVIPPlayer(g_iVIPIndex);
@@ -191,7 +190,7 @@ public bool:FindNewVIP(Status)
 					
 					for (new i = 1; i <= MaxClients; i++)
 					{
-						if (i != LastVIP && IsValidClient(i, 0)  && GetClientTeam(i) == 3)
+						if(i != LastVIP && IsValidClient(i, 0)  && GetClientTeam(i) == 3)
 						{
 							VIPChanceArray[PlayerCount] = i;
 							PlayerCount++;
@@ -216,7 +215,7 @@ public SetupVersionString()
 /* Timer Methodology. Psychonic said there's a better way with brushes? */
 public TimerStuff(Status)
 {
-	switch (Status)
+	switch(Status)
 	{
 		case 0:
 		{
@@ -230,6 +229,7 @@ public TimerStuff(Status)
 			{
 				KillTimer(g_hVIPTimerHandle);
 			}
+			
 			g_hVIPTimerHandle = CreateTimer(0.4, CheckVIPPosition, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 		}
 		
@@ -263,13 +263,13 @@ public Action:CheckVIPPosition(Handle:Timer)
 		return Plugin_Handled;
 	}
 
-	if (!g_bRoundEnd)
+	if(!g_bRoundEnd)
 	{
 		decl Float:VIPPos[3];
 		GetClientAbsOrigin(g_iVIPIndex, VIPPos);
-		if (IsPointInLocation(VIPPos, g_fVIPResQ1Min, g_fVIPResQ1Max) || IsPointInLocation(VIPPos, g_fVIPResQ2Min, g_fVIPResQ2Max))
+		if(IsPointInLocation(VIPPos, g_fVIPResQ1Min, g_fVIPResQ1Max) || IsPointInLocation(VIPPos, g_fVIPResQ2Min, g_fVIPResQ2Max))
 		{
-			if (g_fVIPResQdTele[0] != 0 && g_fVIPResQdTele[1] != 0 && g_fVIPResQdTele[2] != 0)
+			if(g_fVIPResQdTele[0] != 0 && g_fVIPResQdTele[1] != 0 && g_fVIPResQdTele[2] != 0)
 			{
 				TeleportEntity(g_iVIPIndex, g_fVIPResQdTele, NULL_VECTOR, NULL_VECTOR);
 			}

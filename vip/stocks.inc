@@ -4,7 +4,7 @@ stock bool:CanLoad()
 {
 	decl String:MapName[64];
 	GetCurrentMap(MapName, sizeof(MapName));
-	if (strncmp(MapName, "as_", 3) != 0 && !g_bForceLoad)
+	if(strncmp(MapName, "as_", 3) != 0 && !g_bForceLoad)
 	{
 		return false;
 	}
@@ -20,12 +20,13 @@ stock bool:SetVIPIndex(Index)
 		g_iLastVIPUserId = GetClientUserId(Index);
 		return true;
 	}
+	
 	return false;
 }
 
 stock bool:IsNotLastVIP(Index)
 {
-	if (GetClientUserId(Index) == g_iLastVIPUserId)
+	if(GetClientUserId(Index) == g_iLastVIPUserId)
 	{
 		return false;
 	}
@@ -88,13 +89,11 @@ stock SetupMoney()
 
 stock SetCash(Team)
 {
-	new PlayerAlive;
 	for(new i = 1; i <=MaxClients; i++)
 	{
 		if(IsValidClient(i, 1) && GetClientTeam(i) == Team)
 		{
-			PlayerAlive = IsPlayerAlive(i);
-			switch(PlayerAlive)
+			switch(IsPlayerAlive(i))
 			{
 				case 0:
 				{
@@ -116,7 +115,7 @@ stock CreateVIPPlayer(client)
 	SetEntProp(client, Prop_Send, "m_ArmorValue", 125);
 	SetEntProp(client, Prop_Send, "m_bHasHelmet", 1);
 	
-	if (!IsModelPrecached(g_sVIPModelPath))
+	if(!IsModelPrecached(g_sVIPModelPath))
 	{
 		if(!FileExists(g_sVIPModelPath))
 		{
@@ -135,7 +134,6 @@ stock CreateVIPPlayer(client)
 
 stock AM_RemoveAllWeapons(client)
 {
-	new bool:bHasUniqueWeapon;
 	decl String:WeaponName[32];
 	new weaponIndex;
 	for (new i = 0; i <= 5; i++)
@@ -144,12 +142,6 @@ stock AM_RemoveAllWeapons(client)
 		while ((weaponIndex = GetPlayerWeaponSlot(client, i)) != -1)
 		{
 			GetEdictClassname(weaponIndex, WeaponName, sizeof(WeaponName));
-			if((StrEqual(WeaponName, g_sVIPWeaponName)))
-			{
-				bHasUniqueWeapon = true;
-				break;
-			}
-			
 			if(StrEqual(WeaponName, "weapon_knife"))
 			{
 				break;
@@ -160,23 +152,22 @@ stock AM_RemoveAllWeapons(client)
 		}
 	}
 	
-	if (!bHasUniqueWeapon)
-	{
-		GivePlayerItem(client, g_sVIPWeaponName);
-	}
+	GivePlayerItem(client, g_sVIPWeaponName); // Work Around for Jesus Mode.
 }
 
 stock ProtectTheVIPTeamSound()
 {
+	decl String:InitialRadioSound[24];
+	FormatEx(InitialRadioSound, sizeof(InitialRadioSound), g_sInitialRadio[GetRandomInt(0,3)]);
 	for(new i = 1; i <= MaxClients; i++)
 	{
 		if(IsValidClient(i, 0))
 		{
-			switch (GetClientTeam(i))
+			switch(GetClientTeam(i))
 			{
 				case 2:
 				{
-					EmitSoundToClient(i, g_sInitialRadio[GetRandomInt(0,3)]);
+					EmitSoundToClient(i, InitialRadioSound);
 				}
 				
 				case 3:
@@ -190,6 +181,35 @@ stock ProtectTheVIPTeamSound()
 	}
 }
 
+stock String:GetProperTeamName(Team)
+{
+	decl String:TeamName[20];
+	switch(Team)
+	{
+		case 0:
+		{
+			FormatEx(TeamName, sizeof(TeamName), "Unassigned");
+			return TeamName;
+		}
+		case 1:
+		{
+			FormatEx(TeamName, sizeof(TeamName), "Spectator");
+			return TeamName;
+		}
+		case 2:
+		{
+			FormatEx(TeamName, sizeof(TeamName), "Terrorist");
+			return TeamName;
+		}
+		case 3:
+		{
+			FormatEx(TeamName, sizeof(TeamName), "Counter-Terrorist");
+			return TeamName;
+		}
+	}
+	return TeamName; // Cannot Happen.
+}
+
 /* Huge Thanks to Zombie:Reloaded and Richard Helgeby for explaining this to me ages ago */
 stock bool:IsPointInLocation(Float:point[3], Float:min[3], Float:max[3])
 {
@@ -198,7 +218,7 @@ stock bool:IsPointInLocation(Float:point[3], Float:min[3], Float:max[3])
 	new Float:posY = point[1];
 	new Float:posZ = point[2];
 	// Check if within x boundaries.
-	if ((posX >= min[0]) && (posX <= max[0]) && (posY >= min[1]) && (posY <= max[1]) && (posZ >= min[2]) && (posZ <= max[2]))
+	if((posX >= min[0]) && (posX <= max[0]) && (posY >= min[1]) && (posY <= max[1]) && (posZ >= min[2]) && (posZ <= max[2]))
 	{
 		// The point is within the location boundaries.
 		return true;

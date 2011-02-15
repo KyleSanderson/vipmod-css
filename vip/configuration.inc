@@ -2,6 +2,8 @@
 
 public RegisterCVars()
 {
+	CreateConVar("vip_gamemode_version", PLUGIN_VERSION, PLUGIN_DESCRIPTION, FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_UNLOGGED|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY); // Some Jerk took vip_version :< 
+
 	g_hConVar[CVAR_FORCELOAD]		=	CreateConVar("vip_forceload",		"0",								"Enables forced loading of VIPMod.");
 	g_hConVar[CVAR_GAME_DESCRIPTION]=	CreateConVar("vip_gamedescription",	"1",								"Enables the changing of SRCDS's gamedescription.");
 	g_hConVar[CVAR_VIPTELEPORT]		=	CreateConVar("vip_teleport",		"0, 0, 0, 0, 0, 0",					"VIP after Escape Teleport.");
@@ -10,15 +12,12 @@ public RegisterCVars()
 	g_hConVar[CVAR_VIPMODEL_PATH]	=	CreateConVar("vip_vipmodel",		"models/player/vip/small2/vip.mdl",	"VIP Model Path.");
 	g_hConVar[CVAR_VIPVOCAL]		=	CreateConVar("vip_vocalize",		"1",								"Chooses if you want the plugin to be silent, or to be talkative");
 	g_hConVar[CVAR_VIPWEAPON]		=	CreateConVar("vip_vipweapon",		"weapon_usp",						"Weapon given to the VIP");
-		
+
 	g_hMPFreezeTime		=	FindConVar("mp_round_restart_delay");
 	g_fRoundEndFloat	=	GetConVarFloat(g_hMPFreezeTime);
 	g_hRoundTime 		=	FindConVar("mp_roundtime");
 	g_fRoundEndDuration =	GetConVarFloat(g_hRoundTime) * 60;
-
-	g_bVocalize			= GetConVarBool(g_hConVar[CVAR_VIPVOCAL]);
-	g_bForceLoad 		= GetConVarBool(g_hConVar[CVAR_FORCELOAD]);
-	g_bChangeGameDesc	= GetConVarBool(g_hConVar[CVAR_GAME_DESCRIPTION]);
+	
 	GetConVarString(g_hConVar[CVAR_VIPMODEL_PATH], g_sVIPModelPath, sizeof(g_sVIPModelPath));
 	GetConVarString(g_hConVar[CVAR_VIPWEAPON], g_sVIPWeaponName, sizeof(g_sVIPWeaponName));
 	
@@ -46,7 +45,8 @@ public GameDescChanged(Handle:convar, const String:oldValue[], const String:newV
 public ModelPathChanged(Handle:convar, const String:oldValue[], const String:newValue[])
 {
 	strcopy(g_sVIPModelPath, sizeof(g_sVIPModelPath), newValue);
-	if(g_bVocalize)
+	
+	if(g_bModIsEnabled && g_bVocalize)
 	{
 		PrintToChatAll("\x04[VIPMod]\x03 VIP Model path changed, you need to change the map for it to take effect (properly).");
 		PrintToServer("[VIPMod] VIP Model path changed, you need to change the map for it to take effect (properly).");
@@ -62,7 +62,7 @@ public VIPZone1Changed(Handle:convar, const String:oldValue[], const String:newV
 {
 	GetVIPCoords(0);
 	
-	if(!DoWeHaveTheCoords())
+	if(g_bModIsEnabled && !DoWeHaveTheCoords())
 	{
 		g_bCoordsFound = false;
 	}
@@ -71,8 +71,8 @@ public VIPZone1Changed(Handle:convar, const String:oldValue[], const String:newV
 public VIPZone2Changed(Handle:convar, const String:oldValue[], const String:newValue[])
 {
 	GetVIPCoords(1);
-	
-	if(!DoWeHaveTheCoords())
+
+	if(g_bModIsEnabled && !DoWeHaveTheCoords())
 	{
 		g_bCoordsFound = false;
 	}

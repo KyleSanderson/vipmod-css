@@ -7,19 +7,19 @@ public EventHooks(Status) // Forwards for these would be nice. They're not game 
 		case 0:
 		{
 			UnhookEvent("player_death",		Event_OnPlayerDeath,			EventHookMode_Pre);
-			UnhookEvent("player_team",		Event_OnPlayerTeam,				EventHookMode_Pre);
+			UnhookEvent("player_team",		Event_OnPlayerTeam,				EventHookMode_Post);
 			UnhookEvent("round_start",		Event_OnRoundStart,				EventHookMode_PostNoCopy);
 			UnhookEvent("round_end",		Event_OnRoundEnd,				EventHookMode_Pre);
-			UnhookEvent("round_freeze_end",	Event_OnRoundStartFreezeEnd,	EventHookMode_Pre);
+			UnhookEvent("round_freeze_end",	Event_OnRoundStartFreezeEnd,	EventHookMode_PostNoCopy);
 		}
 		
 		case 1:
 		{
 			HookEvent("player_death",		Event_OnPlayerDeath,			EventHookMode_Pre);
-			HookEvent("player_team",		Event_OnPlayerTeam,				EventHookMode_Pre);
+			HookEvent("player_team",		Event_OnPlayerTeam,				EventHookMode_Post);
 			HookEvent("round_start",		Event_OnRoundStart,				EventHookMode_PostNoCopy);
 			HookEvent("round_end",			Event_OnRoundEnd,				EventHookMode_Pre);
-			HookEvent("round_freeze_end",	Event_OnRoundStartFreezeEnd,	EventHookMode_Pre);
+			HookEvent("round_freeze_end",	Event_OnRoundStartFreezeEnd,	EventHookMode_PostNoCopy);
 		}
 	}
 }
@@ -96,16 +96,15 @@ public Action:Event_OnRoundEnd(Handle:event, const String:name[], bool:dontBroad
 	return Plugin_Handled;
 }
 
-public Action:Event_OnRoundStartFreezeEnd(Handle:event, const String:name[], bool:dontBroadcast)
+public Event_OnRoundStartFreezeEnd(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	OnRoundStartFreezeEnd();
 	ProtectTheVIPTeamSound();
-	return Plugin_Handled;
 }
 
 public Action:RestrictBuyCommand(client, const String:command[], argc)
 {
-	if (client == g_iVIPIndex)
+	if(client == g_iVIPIndex)
 	{
 		PrintToChat(client, "\x04[VIPMod]\x03 You can't buy anything as the VIP you silly goose.");
 		return Plugin_Handled;

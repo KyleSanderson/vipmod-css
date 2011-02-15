@@ -9,7 +9,7 @@ stock GetTeams()
 	for (new team_index = 0; (team_index < max_teams_count); team_index++)
 	{
 		GetTeamName(team_index, team_name, sizeof(team_name));
-		if (strcmp(team_name, "") != 0)
+		if(strcmp(team_name, "") != 0)
 		{
 			g_team_list[team_index] = team_name;
 		}
@@ -18,15 +18,15 @@ stock GetTeams()
 
 stock LogPlayerEvent(client, const String:verb[], const String:event[], bool:display_location = false, const String:properties[] = "")
 {
-	if (IsValidPlayer(client))
+	if(IsValidPlayer(client))
 	{
 		decl String:player_authid[32];
-		if (!GetClientAuthString(client, player_authid, sizeof(player_authid)))
+		if(!GetClientAuthString(client, player_authid, sizeof(player_authid)))
 		{
 			strcopy(player_authid, sizeof(player_authid), "UNKNOWN");
 		}
 
-		if (display_location)
+		if(display_location)
 		{
 			decl Float:player_origin[3];
 			GetClientAbsOrigin(client, player_origin);
@@ -41,20 +41,20 @@ stock LogPlayerEvent(client, const String:verb[], const String:event[], bool:dis
 
 stock LogPlyrPlyrEvent(client, victim, const String:verb[], const String:event[], bool:display_location = false, const String:properties[] = "")
 {
-	if (IsValidPlayer(client) && IsValidPlayer(victim))
+	if(IsValidPlayer(client) && IsValidPlayer(victim))
 	{
 		decl String:player_authid[32];
-		if (!GetClientAuthString(client, player_authid, sizeof(player_authid)))
+		if(!GetClientAuthString(client, player_authid, sizeof(player_authid)))
 		{
 			strcopy(player_authid, sizeof(player_authid), "UNKNOWN");
 		}
 		decl String:victim_authid[32];
-		if (!GetClientAuthString(victim, victim_authid, sizeof(victim_authid)))
+		if(!GetClientAuthString(victim, victim_authid, sizeof(victim_authid)))
 		{
 			strcopy(victim_authid, sizeof(victim_authid), "UNKNOWN");
 		}
 		
-		if (display_location)
+		if(display_location)
 		{
 			decl Float:player_origin[3];
 			GetClientAbsOrigin(client, player_origin);
@@ -73,7 +73,7 @@ stock LogPlyrPlyrEvent(client, victim, const String:verb[], const String:event[]
 
 stock IsValidPlayer(client)
 {
-	if (client > 0 && client <= MaxClients && IsClientInGame(client))
+	if(client > 0 && client <= MaxClients && IsClientInGame(client))
 	{
 		return true;
 	}

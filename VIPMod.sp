@@ -6,7 +6,7 @@
 #include <sdktools>
 
 /* Defines */
-#define PLUGIN_VERSION			"1.2.0"
+#define PLUGIN_VERSION			"1.2.1"
 #define PLUGIN_DESCRIPTION		"Creates VIP style gameplay on AS_ maps. Protect the VIP, Team :3"
 #define StartMeUp 1				/* Just to make it easier for people to read this */
 #define KillMeNow 0				/* Just to make it easier for people to read this */
@@ -32,7 +32,11 @@ public Plugin:myinfo =
 
 public OnPluginStart()
 {
-	CreateConVar("vip_gamemode_version", PLUGIN_VERSION, PLUGIN_DESCRIPTION, FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_UNLOGGED|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY); // Some Jerk took vip_version :< 
+	RegisterCVars(); 
+	SetupMoney();
+	SetupTerminateRound();
+	SetupVersionString();
+	AutoExecConfig(true, "vipmod"); // http://forums.alliedmods.net/showpost.php?p=1414583&postcount=17
 }
 
 public OnConfigsExecuted()
@@ -45,15 +49,6 @@ public OnConfigsExecuted()
 
 public VIPMod_Start() // Lets Fire it up.
 {
-	if(!g_bHasBeenLoaded)
-	{
-		RegisterCVars();
-		SetupMoney();
-		SetupTerminateRound();
-		SetupVersionString();
-		g_bHasBeenLoaded = true;
-	}
-	
 	GetVIPCoords(0);
 	GetVIPCoords(1);
 	GetVIPCoords(2);
@@ -124,10 +119,12 @@ public OnPlayerSwapTeam(client, Team)
 {
 	if(client == g_iVIPIndex)
 	{
-		decl String:TeamName[32];
-		GetTeamName(Team, TeamName, sizeof(TeamName));
-		PrintToChatAll("\x04[VIPMod]\x03 The VIP (\x04%N\x03) decided to swap to the \x04%s\x03 Team.\nHow lame is that? \x04:/", client, TeamName);
-		PrintToServer("[VIPMod] The VIP (%N) decided to swap to the %s Team. How lame is that? :/", client, TeamName);
+		if(g_bVocalize)
+		{
+			PrintToChatAll("\x04[VIPMod]\x03 The VIP (\x04%N\x03) decided to swap to the \x04%s\x03 Team.\nHow lame is that? \x04:/", client, GetProperTeamName(Team));
+			PrintToServer("[VIPMod] The VIP (%N) decided to swap to the %s Team.\nHow lame is that? :/", client, GetProperTeamName(Team));
+		}
+		
 		FireRoundEnd(KillMeNow, 0);
 	}
 }
@@ -136,8 +133,12 @@ public OnClientDisconnect(client)
 {
 	if(client == g_iVIPIndex)
 	{
-		PrintToChatAll("\x04[VIPMod]\x03 The VIP (\x04%N\x03) has disconnected as the VIP.", client);
-		PrintToServer("[VIPMod] The VIP (%N) has disconnected as the VIP.", client);
+		if(g_bVocalize)
+		{
+			PrintToChatAll("\x04[VIPMod]\x03 The VIP (\x04%N\x03) has disconnected.", client);
+			PrintToServer("[VIPMod] The VIP (%N) has disconnected.", client);
+		}
+		
 		FireRoundEnd(KillMeNow, 0);
 	}
 }

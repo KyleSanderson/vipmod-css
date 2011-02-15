@@ -2,44 +2,92 @@
 
 public FireUpConfigFiles()
 {
+	decl String:SMPath[256];
 	decl String:buffer[1024];
-	AutoExecConfig(true, "vipmod");
-	BuildPath(Path_SM, buffer, sizeof(buffer), "configs/vip/downloads.cfg");
 	
-	if (!FileExists(buffer)) /* Legacy Mode */
+	BuildPath(Path_SM, SMPath, sizeof(SMPath), "");
+	FormatEx(buffer, sizeof(buffer), "%sconfigs/vip/Models.cfg", SMPath);
+	switch(FileExists(buffer))
 	{
-		new Size = sizeof(g_sSmall1);
-		for(new i; i < Size; i++)
+		case 0: // Legacy Mode
 		{
-			AddFileToDownloadsTable(g_sSmall1[i]);
-			PrecacheModel(g_sSmall1[i]);
+			new Size = sizeof(g_sSmall1);
+			for(new i; i < Size; i++)
+			{
+				AddFileToDownloadsTable(g_sSmall1[i]);
+				PrecacheModel(g_sSmall1[i]);
+			}
+			
+			strcopy(g_sVIPModelPath, sizeof(g_sVIPModelPath), "models/player/vip/small2/vip.mdl");
 		}
 		
-		strcopy(g_sVIPModelPath, sizeof(g_sVIPModelPath), "models/player/vip/small2/vip.mdl");
-		PrecacheSound("radio/vip.wav");
-		for(new i; i <= 3; i++)
+		case 1: // New Mode
 		{
-			PrecacheSound(g_sInitialRadio[i]);
+			new Handle:f = OpenFile(buffer, "r");
+			while (!IsEndOfFile(f) && ReadFileLine(f, buffer, sizeof(buffer)))
+			{
+				TrimString(buffer);
+				if(FileExists(buffer))
+				{
+					AddFileToDownloadsTable(buffer);
+					PrecacheModel(buffer);
+				}
+			}
+			
+			CloseHandle(f);
 		}
-		return;
 	}
-	
-	/* New Mode - Sslice*/
-	
-	new Handle:f = OpenFile(buffer, "r");
-	while (!IsEndOfFile(f) && ReadFileLine(f, buffer, sizeof(buffer)))
+
+	FormatEx(buffer, sizeof(buffer), "%sconfigs/vip/Sounds.cfg", SMPath);
+	if(FileExists(buffer))
+	{
+		new Handle:f = OpenFile(buffer, "r");
+		while (!IsEndOfFile(f) && ReadFileLine(f, buffer, sizeof(buffer)))
+		{
+			TrimString(buffer);
+			if(FileExists(buffer))
+			{
+				AddFileToDownloadsTable(buffer);
+				PrecacheSound(buffer);
+			}
+		}
+		
+		CloseHandle(f);
+	}
+
+	FormatEx(buffer, sizeof(buffer), "%sconfigs/vip/Decals.cfg", SMPath);
+	if(FileExists(buffer))
+	{
+		new Handle:f = OpenFile(buffer, "r");
+		while (!IsEndOfFile(f) && ReadFileLine(f, buffer, sizeof(buffer)))
+		{
+			TrimString(buffer);
+			if(FileExists(buffer))
+			{
+				AddFileToDownloadsTable(buffer);
+				PrecacheDecal(buffer);
+			}
+		}
+		
+		CloseHandle(f);
+	}
+}
+
+/* Better/Global Method. However, requires 9+ native calls on a good day :|.
+{
+	while (!IsEndOfFile(f) && ReadFileLine(f, buffer, sizeof(buffer))) // 9 Native Calls... If you know a better (more reliable, and effecient) method. Please contact the author!
 	{
 		TrimString(buffer);
 		if(FileExists(buffer))
 		{
 			AddFileToDownloadsTable(buffer);
-			if((StrContains(buffer, ".mdl") != -1 || StrContains(buffer, ".vmt") != -1 || StrContains(buffer, ".vtf") != -1 || StrContains(buffer, ".mdl") != -1) && StrContains(buffer, "models/") != -1)
+			if((StrContains(buffer, ".mdl") != -1 || StrContains(buffer, ".vmt") != -1 || StrContains(buffer, ".vtf") != -1 || StrContains(buffer, ".phy") != -1) || StrContains(buffer, ".vtx") != -1 || StrContains(buffer, ".vvd") != -1)
 			{
 				PrecacheModel(buffer);
 				continue;
 			}
 			
-			if((StrContains(buffer, ".mp3") != -1 || StrContains(buffer, ".wav") != -1) && StrContains(buffer, "sound") != -1)
+			if((StrContains(buffer, ".mp3") != -1 || StrContains(buffer, ".wav") != -1))
 			{
 				PrecacheSound(buffer);
 				continue;
@@ -53,5 +101,4 @@ public FireUpConfigFiles()
 			PrecacheGeneric(buffer);
 		}
 	}
-	CloseHandle(f);
-}
+}*/

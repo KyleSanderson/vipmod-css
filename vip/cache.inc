@@ -2,13 +2,11 @@
 
 /* Core */
 new bool:g_bCoordsFound;
-new bool:g_bHasBeenLoaded;
 new bool:g_bModIsEnabled;
 new bool:g_bRoundEnd;
 
 new g_iMoneyPropInfo;
 new g_iLastVIPUserId, g_iVIPIndex;
-
 
 new String:g_sInitialRadio[][] = { "radio/letsgo.wav", "radio/moveout.wav", "radio/go.wav", "radio/locknload.wav" };
 new String:g_sSmall1[][] = {"models/player/vip/small2/vip.dx80.vtx", "models/player/vip/small2/vip.dx90.vtx", "models/player/vip/small2/vip.mdl", "models/player/vip/small2/vip.phy", "models/player/vip/small2/vip.sw.vtx", "models/player/vip/small2/vip.vvd", "materials/models/player/vip/small1/erdim_cylmap.vmt", "materials/models/player/vip/small1/erdim_cylmap.vtf", "materials/models/player/vip/small1/erdim_facemap.vmt", "materials/models/player/vip/small1/eyeball_l.vmt", "materials/models/player/vip/small1/eyeball_l.vtf", "materials/models/player/vip/small1/eyeball_r.vmt", "materials/models/player/vip/small1/eyeball_r.vtf", "materials/models/player/vip/small1/UrbanTemp.vmt", "materials/models/player/vip/small1/UrbanTemp.vtf"};
@@ -40,13 +38,12 @@ enum CvarsList
 
 new Handle:g_hConVar[CvarsList];
 
-new bool:g_bChangeGameDesc;
+new bool:g_bChangeGameDesc = true;
 new bool:g_bForceLoad;
+new bool:g_bVocalize = true;
 
 new Float:g_fRoundEndFloat;
 new Float:g_fRoundEndDuration;
-
-new bool:g_bVocalize;
 
 new String:g_sVIPVersionString[64];
 

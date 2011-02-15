@@ -1,6 +1,6 @@
 public SDKHooks(Status)
 {
-	switch (Status)
+	switch(Status)
 	{
 		case 0:
 		{
