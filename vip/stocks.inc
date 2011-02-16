@@ -87,6 +87,68 @@ stock SetupMoney()
 	g_iMoneyPropInfo = FindSendPropInfo("CCSPlayer", "m_iAccount");
 }
 
+stock FixOldVIPArmour()
+{
+	if(g_iVIPIndex > 0 && IsValidClient(g_iVIPIndex, 0))
+	{
+		SetEntProp(g_iVIPIndex, Prop_Send, "m_ArmorValue", 100);
+	}
+}
+
+/* Start of Score Work Around Shit.
+stock WorkAroundSetScore(Team) // If SetTeamScore is fixed, remove and use that, duh!
+{
+	if(g_bScoreNotChanged)
+	{
+		return;
+	}
+	
+	g_bScoreNotChanged = false;
+	SetTeamScore(Team, GetTeamScore(Team)+1);
+	switch (Team)
+	{
+		case 2:
+		{
+			ChangeEdictState(g_iTTeamManIndex, GetEntSendPropOffs(g_iTTeamManIndex, "m_iScore"));
+		}
+		
+		case 3:
+		{
+			ChangeEdictState(g_iCTTeamManIndex, GetEntSendPropOffs(g_iCTTeamManIndex, "m_iScore"));
+		}
+	}
+}
+
+stock BerniScoreStock()
+{
+	new MaxEntities		=	GetMaxEntities();
+	g_iTTeamManIndex	=	Team_GetEdict(2, MaxEntities);
+	g_iCTTeamManIndex	=	Team_GetEdict(3, MaxEntities);
+}
+
+stock Team_GetEdict(Team, MaxEntities)
+{
+	decl String:EntityClassName[64];
+	for (new Index=MaxClients+1; Index < MaxEntities; Index++)
+	{
+		if (IsValidEntity(Index))
+		{
+			GetEdictClassname(Index, EntityClassName, sizeof(EntityClassName));
+			if(StrContains(EntityClassName, "team_manager", false))
+			{
+				if (GetEntProp(Index, Prop_Send, "m_iTeamNum") == Team)
+				{
+					PrintToServer("Found Team: %i at Edict: %i", Team, Index);
+					return Index;
+				}
+			}
+		}
+	}
+	PrintToServer("Couldn't find shit for %i", Team);
+	return -1;
+}
+End of Score Work Around Shit. */
+
 stock SetCash(Team)
 {
 	for(new i = 1; i <=MaxClients; i++)

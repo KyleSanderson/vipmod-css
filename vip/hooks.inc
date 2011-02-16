@@ -90,6 +90,7 @@ public Action:Event_OnRoundEnd(Handle:event, const String:name[], bool:dontBroad
 {
 	if(!g_bRoundEnd)
 	{
+		g_bRoundEnd = true;
 		OnRoundEnd();
 		return Plugin_Continue;
 	}

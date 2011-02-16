@@ -2,9 +2,9 @@
 
 public ClearVIPCoordinates()
 {
-	SetConVarString(g_hConVar[CVAR_VIPZONE1],		"0");
-	SetConVarString(g_hConVar[CVAR_VIPZONE2],		"0");
-	SetConVarString(g_hConVar[CVAR_VIPTELEPORT],	"0");
+	SetConVarString(FindConVar("vip_escapezone"),		"0");
+	SetConVarString(FindConVar("vip_escapezone2"),		"0");
+	SetConVarString(FindConVar("vip_teleport"),			"0");
 	for(new i; i <= 2; i++)
 	{
 		g_fVIPResQ1Min[i]	= 0.0;
@@ -21,26 +21,21 @@ public GetVIPCoords(Status)
 	{
 		case 0:
 		{
-			g_hConVar[CVAR_VIPZONE1] = FindConVar("vip_escapezone");
-			if(g_hConVar[CVAR_VIPZONE1] != INVALID_HANDLE)
+			decl String:VIPCoordsArray1[6][8];
+			ReplaceString(g_sVIPEscapeZone1, sizeof(g_sVIPEscapeZone1), "  ", " ");
+			ExplodeString(g_sVIPEscapeZone1, " ", VIPCoordsArray1, sizeof(VIPCoordsArray1), sizeof(VIPCoordsArray1[]));
+			for(new i; i < 6; i++)
 			{
-				decl String:Coords1[256], String:VIPCoordsArray1[6][8];
-				GetConVarString(g_hConVar[CVAR_VIPZONE1], Coords1, sizeof(Coords1));
-				ReplaceString(Coords1, sizeof(Coords1), "  ", " ");
-				ExplodeString(Coords1, " ", VIPCoordsArray1, sizeof(VIPCoordsArray1), sizeof(VIPCoordsArray1[]));
-				for(new i; i <= 5; i++)
+				switch(i)
 				{
-					switch(i)
+					case 0, 1, 2:
 					{
-						case 0, 1, 2:
-						{
-							g_fVIPResQ1Min[i] = StringToFloat(VIPCoordsArray1[i]);
-						}
-				
-						case 3, 4, 5:
-						{
-							g_fVIPResQ1Max[i-3] = StringToFloat(VIPCoordsArray1[i]);
-						}
+						g_fVIPResQ1Min[i] = StringToFloat(VIPCoordsArray1[i]);
+					}
+
+					case 3, 4, 5:
+					{
+						g_fVIPResQ1Max[i-3] = StringToFloat(VIPCoordsArray1[i]);
 					}
 				}
 			}
@@ -48,26 +43,21 @@ public GetVIPCoords(Status)
 		
 		case 1:
 		{
-			g_hConVar[CVAR_VIPZONE2] = FindConVar("vip_escapezone2");
-			if(g_hConVar[CVAR_VIPZONE2] != INVALID_HANDLE)
+			decl String:VIPCoordsArray2[6][8];
+			ReplaceString(g_sVIPEscapeZone2, sizeof(g_sVIPEscapeZone2), "  ", " ");
+			ExplodeString(g_sVIPEscapeZone2, " ", VIPCoordsArray2, sizeof(VIPCoordsArray2), sizeof(VIPCoordsArray2[]));
+			for(new i; i < 6; i++)
 			{
-				decl String:Coords2[256], String:VIPCoordsArray2[6][8];
-				GetConVarString(g_hConVar[CVAR_VIPZONE2], Coords2, sizeof(Coords2));
-				ReplaceString(Coords2, sizeof(Coords2), "  ", " ");
-				ExplodeString(Coords2, " ", VIPCoordsArray2, sizeof(VIPCoordsArray2), sizeof(VIPCoordsArray2[]));
-				for(new i; i <= 5; i++)
+				switch(i)
 				{
-					switch(i)
+					case 0, 1, 2:
 					{
-						case 0, 1, 2:
-						{
-							g_fVIPResQ2Min[i] = StringToFloat(VIPCoordsArray2[i]);
-						}
-				
-						case 3, 4, 5:
-						{
-							g_fVIPResQ2Max[i-3] = StringToFloat(VIPCoordsArray2[i]);
-						}
+						g_fVIPResQ2Min[i] = StringToFloat(VIPCoordsArray2[i]);
+					}
+			
+					case 3, 4, 5:
+					{
+						g_fVIPResQ2Max[i-3] = StringToFloat(VIPCoordsArray2[i]);
 					}
 				}
 			}
@@ -75,17 +65,12 @@ public GetVIPCoords(Status)
 		
 		case 2:
 		{
-			g_hConVar[CVAR_VIPTELEPORT] = FindConVar("vip_teleport");
-			if(g_hConVar[CVAR_VIPTELEPORT] != INVALID_HANDLE)
+			decl String:VIPCoordsTeleArray[3][8];
+			ReplaceString(g_sVIPTeleportZone, sizeof(g_sVIPTeleportZone), "  ", " ");
+			ExplodeString(g_sVIPTeleportZone, " ", VIPCoordsTeleArray, sizeof(VIPCoordsTeleArray), sizeof(VIPCoordsTeleArray[]));
+			for(new i; i < 3; i++)
 			{
-				decl String:CoordsTele[256], String:VIPCoordsTeleArray[3][8];
-				GetConVarString(g_hConVar[CVAR_VIPTELEPORT], CoordsTele, sizeof(CoordsTele));
-				ReplaceString(CoordsTele, sizeof(CoordsTele), "  ", " ");
-				ExplodeString(CoordsTele, " ", VIPCoordsTeleArray, sizeof(VIPCoordsTeleArray), sizeof(VIPCoordsTeleArray[]));
-				for(new i; i <= 2; i++)
-				{
-					g_fVIPResQdTele[i] = StringToFloat(VIPCoordsTeleArray[i]);
-				}
+				g_fVIPResQdTele[i] = StringToFloat(VIPCoordsTeleArray[i]);
 			}
 		}
 	}
@@ -112,31 +97,35 @@ public FireRoundEnd(Status, Attacker)
 	{
 		case 0: // Disconnection / Team Change.
 		{
+			SDKCall(g_hTerminateRound, g_fRoundEndDelay, 2);		// The VIP has been assassinated!
 			LogPlayerEvent(g_iVIPIndex, "triggered", "VIP_Killed"); // HLX:CE Support
-			SDKCall(g_hTerminateRound, g_fRoundEndFloat, 2);		// The VIP has been assassinated!
+			//WorkAroundSetScore(2);
 			SetCash(2);
 		}
 		
 		case 1:
 		{
-			SDKCall(g_hTerminateRound, g_fRoundEndFloat, 1);		// The VIP has escaped!
+			SDKCall(g_hTerminateRound, g_fRoundEndDelay, 1);		// The VIP has escaped!
 			LogPlayerEvent(g_iVIPIndex, "triggered", "VIP_Escaped"); // HLX:CE Logging Support
+			//WorkAroundSetScore(3);
 			SetEntProp(g_iVIPIndex, Prop_Data, "m_MoveType", MOVETYPE_NONE);
 			SetCash(3);
 		}
 		
 		case 2:
 		{
-			SDKCall(g_hTerminateRound, g_fRoundEndFloat, 14);	// The VIP has not escaped!
+			SDKCall(g_hTerminateRound, g_fRoundEndDelay, 14);	// The VIP has not escaped!
 			LogPlayerEvent(0, "triggered", "VIP_NotEscaped"); // HLX:CE Logging Support - There's no support for this from Source? o.O
+			//WorkAroundSetScore(2);
 			SetCash(2);
 		}
 		
 		case 3:
 		{
-			SDKCall(g_hTerminateRound, g_fRoundEndFloat, 2);		// The VIP has been assassinated!
-			SetCash(2);
+			SDKCall(g_hTerminateRound, g_fRoundEndDelay, 2);		// The VIP has been assassinated!
 			LogPlyrPlyrEvent(Attacker, g_iVIPIndex, "triggered", "VIP_Killed"); // HLX:CE Logging Support
+			//WorkAroundSetScore(2);
+			SetCash(2);
 		}
 	}
 }
@@ -147,6 +136,7 @@ public bool:FindNewVIP(Status)
 	{
 		case 0: 
 		{
+			FixOldVIPArmour();
 			SDKHooks(0);
 			SetVIPIndex(-1);
 		}
@@ -240,7 +230,7 @@ public TimerStuff(Status)
 				KillTimer(g_hRoundTimer);
 			}
 			
-			g_hRoundTimer = CreateTimer(g_fRoundEndDuration, TimerFireRoundEnd, _, TIMER_FLAG_NO_MAPCHANGE);
+			g_hRoundTimer = CreateTimer(g_fRoundDuration, TimerFireRoundEnd, _, TIMER_FLAG_NO_MAPCHANGE);
 		}
 	}
 }
@@ -248,7 +238,7 @@ public TimerStuff(Status)
 public Action:TimerFireRoundEnd(Handle:Timer)
 {
 	g_hRoundTimer = INVALID_HANDLE;
-	if(!g_bRoundEnd)
+	if(!g_bRoundEnd && 0 < g_iVIPIndex)
 	{
 		FireRoundEnd(2, 0);
 	}
@@ -278,7 +268,7 @@ public Action:CheckVIPPosition(Handle:Timer)
 		}
 		return Plugin_Handled;
 	}
-		
+	
 	KillTimer(g_hVIPTimerHandle);
 	g_hVIPTimerHandle = INVALID_HANDLE;
 	

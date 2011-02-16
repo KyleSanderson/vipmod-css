@@ -6,7 +6,7 @@
 #include <sdktools>
 
 /* Defines */
-#define PLUGIN_VERSION			"1.2.1"
+#define PLUGIN_VERSION			"1.2.2"
 #define PLUGIN_DESCRIPTION		"Creates VIP style gameplay on AS_ maps. Protect the VIP, Team :3"
 #define StartMeUp 1				/* Just to make it easier for people to read this */
 #define KillMeNow 0				/* Just to make it easier for people to read this */
@@ -86,7 +86,7 @@ public OnRoundStart()
 		SDKHooks(3);
 		TimerStuff(StartMeUp);
 	}
-		
+	
 	g_bRoundEnd = false;
 }
 
@@ -97,7 +97,7 @@ public OnRoundStartFreezeEnd() // When FreezeTime is up, bad name eh? lol :p
 
 public OnPlayerDeath(Killed, Killer)
 {
-	if(Killed == g_iVIPIndex)
+	if(Killed == g_iVIPIndex && !g_bRoundEnd)
 	{
 		FireRoundEnd(KillMeNow, Killer);
 	}
@@ -105,14 +105,16 @@ public OnPlayerDeath(Killed, Killer)
 
 public OnRoundEnd()
 {
-	g_bRoundEnd = true;
 	FireRoundEnd(2, 0);
 }
 
 public OnVIPEscape()
 {
 	SDKHooks(5);
-	FireRoundEnd(1, 0);
+	if(!g_bRoundEnd)
+	{
+		FireRoundEnd(1, 0);
+	}
 }
 
 public OnPlayerSwapTeam(client, Team)
@@ -125,7 +127,10 @@ public OnPlayerSwapTeam(client, Team)
 			PrintToServer("[VIPMod] The VIP (%N) decided to swap to the %s Team.\nHow lame is that? :/", client, GetProperTeamName(Team));
 		}
 		
-		FireRoundEnd(KillMeNow, 0);
+		if(!g_bRoundEnd)
+		{
+			FireRoundEnd(KillMeNow, 0);
+		}
 	}
 }
 
@@ -139,7 +144,10 @@ public OnClientDisconnect(client)
 			PrintToServer("[VIPMod] The VIP (%N) has disconnected.", client);
 		}
 		
-		FireRoundEnd(KillMeNow, 0);
+		if(!g_bRoundEnd)
+		{
+			FireRoundEnd(KillMeNow, 0);
+		}
 	}
 }
 
@@ -154,7 +162,7 @@ public OnMapEnd()
 		TimerStuff(KillMeNow);
 		FindNewVIP(KillMeNow);
 		UserMessages(KillMeNow);
-		
+
 		g_bCoordsFound = false;
 		g_bModIsEnabled = false;
 	}
