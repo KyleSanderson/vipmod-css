@@ -89,65 +89,8 @@ stock SetupMoney()
 
 stock FixOldVIPArmour()
 {
-	if(g_iVIPIndex > 0 && IsValidClient(g_iVIPIndex, 0))
-	{
-		SetEntProp(g_iVIPIndex, Prop_Send, "m_ArmorValue", 100);
-	}
+	SetEntProp(g_iVIPIndex, Prop_Send, "m_ArmorValue", 100);
 }
-
-/* Start of Score Work Around Shit.
-stock WorkAroundSetScore(Team) // If SetTeamScore is fixed, remove and use that, duh!
-{
-	if(g_bScoreNotChanged)
-	{
-		return;
-	}
-	
-	g_bScoreNotChanged = false;
-	SetTeamScore(Team, GetTeamScore(Team)+1);
-	switch (Team)
-	{
-		case 2:
-		{
-			ChangeEdictState(g_iTTeamManIndex, GetEntSendPropOffs(g_iTTeamManIndex, "m_iScore"));
-		}
-		
-		case 3:
-		{
-			ChangeEdictState(g_iCTTeamManIndex, GetEntSendPropOffs(g_iCTTeamManIndex, "m_iScore"));
-		}
-	}
-}
-
-stock BerniScoreStock()
-{
-	new MaxEntities		=	GetMaxEntities();
-	g_iTTeamManIndex	=	Team_GetEdict(2, MaxEntities);
-	g_iCTTeamManIndex	=	Team_GetEdict(3, MaxEntities);
-}
-
-stock Team_GetEdict(Team, MaxEntities)
-{
-	decl String:EntityClassName[64];
-	for (new Index=MaxClients+1; Index < MaxEntities; Index++)
-	{
-		if (IsValidEntity(Index))
-		{
-			GetEdictClassname(Index, EntityClassName, sizeof(EntityClassName));
-			if(StrContains(EntityClassName, "team_manager", false))
-			{
-				if (GetEntProp(Index, Prop_Send, "m_iTeamNum") == Team)
-				{
-					PrintToServer("Found Team: %i at Edict: %i", Team, Index);
-					return Index;
-				}
-			}
-		}
-	}
-	PrintToServer("Couldn't find shit for %i", Team);
-	return -1;
-}
-End of Score Work Around Shit. */
 
 stock SetCash(Team)
 {
@@ -177,20 +120,30 @@ stock CreateVIPPlayer(client)
 	SetEntProp(client, Prop_Send, "m_ArmorValue", 125);
 	SetEntProp(client, Prop_Send, "m_bHasHelmet", 1);
 	
-	if(!IsModelPrecached(g_sVIPModelPath))
-	{
-		if(!FileExists(g_sVIPModelPath))
-		{
-			ThrowError("The model you've selected (%s) doesn't exist.", g_sVIPModelPath);
-		}
-		ThrowError("Well this is weird (%s) hasn't been precached.", g_sVIPModelPath);
-	}
-	
 	AM_RemoveAllWeapons(client); // Crash?
 	if(g_bVocalize)
 	{
 		PrintCenterText(client, "You are the VIP");
 	}
+	
+	if(!IsModelPrecached(g_sVIPModelPath))
+	{
+		if(!FileExists(g_sVIPModelPath))
+		{
+			LogError("The model you've selected (%s) doesn't exist.", g_sVIPModelPath);
+			return;
+		}
+		LogError("Well this is weird (%s) hasn't been precached.", g_sVIPModelPath);
+		
+		if(g_bVocalize)
+		{
+			PrintToChatAll("\x04[VIPMod]\x03 Unable to set %N's VIPSkin. Check your error logs!", g_iVIPIndex, g_sVIPModelPath);
+			PrintToServer("[VIPMod] Unable to set %N's VIPSkin. Check your error logs!", g_iVIPIndex, g_sVIPModelPath);
+		}
+		
+		return;
+	}
+	
 	SetEntityModel(client, g_sVIPModelPath);
 }
 
@@ -217,29 +170,74 @@ stock AM_RemoveAllWeapons(client)
 	GivePlayerItem(client, g_sVIPWeaponName); // Work Around for Jesus Mode.
 }
 
-stock ProtectTheVIPTeamSound()
+stock PlayTeamSound(Status)
 {
-	decl String:InitialRadioSound[24];
-	FormatEx(InitialRadioSound, sizeof(InitialRadioSound), g_sInitialRadio[GetRandomInt(0,3)]);
-	for(new i = 1; i <= MaxClients; i++)
+	decl String:Radio[24];
+	
+	switch(Status)
 	{
-		if(IsValidClient(i, 0))
+		case 1:
 		{
-			switch(GetClientTeam(i))
+			strcopy(Radio, sizeof(Radio), g_sInitialRadio[GetRandomInt(0,3)]);
+			for(new i = 1; i <= MaxClients; i++)
 			{
-				case 2:
+				if(IsValidClient(i, 0))
 				{
-					EmitSoundToClient(i, InitialRadioSound);
-				}
+					switch(GetClientTeam(i))
+					{
+						case 2:
+						{
+							EmitSoundToClient(i, Radio);
+						}
 				
-				case 3:
-				{
-					EmitSoundToClient(i, "radio/vip.wav");
+						case 3:
+						{
+							EmitSoundToClient(i, "radio/vip.wav");
+						}
+					}
 				}
 			}
-			
 		}
 		
+		case 2:
+		{
+			strcopy(Radio, sizeof(Radio), "radio/terwin.wav");
+			for(new i = 1; i <=MaxClients; i++)
+			{
+				if(IsValidClient(i, 1))
+				{
+					EmitSoundToClient(i, Radio);
+				}
+			}			
+		}
+		
+		case 3:
+		{
+			strcopy(Radio, sizeof(Radio), "radio/ctwin.wav");
+			for(new i = 1; i <=MaxClients; i++)
+			{
+				if(IsValidClient(i, 1))
+				{
+					EmitSoundToClient(i, Radio);
+				}
+			}
+		}
+	}
+}
+
+stock SetScore(Team)
+{
+	for(new i = 1; i <=MaxClients; i++)
+	{
+		if(IsValidClient(i, 0) && GetClientTeam(i) == Team)
+		{
+			SetEntProp(i, Prop_Data, "m_iFrags", (GetEntProp(i, Prop_Data, "m_iFrags") + 1));
+		}
+	}
+	
+	if(Team == 3)
+	{
+		SetEntProp(g_iVIPIndex, Prop_Data, "m_iFrags", (GetEntProp(g_iVIPIndex, Prop_Data, "m_iFrags") + 2));
 	}
 }
 

@@ -4,6 +4,10 @@
 new bool:g_bCoordsFound;
 new bool:g_bModIsEnabled;
 new bool:g_bRoundEnd;
+new bool:g_bUserMessageEnabled; // Workaround for lack of Working Unhook?
+
+new bool:g_bEscZone1Coords;
+new bool:g_bEscZone2Coords;
 
 new g_iMoneyPropInfo;
 new g_iLastVIPUserId, g_iVIPIndex;
@@ -18,6 +22,7 @@ new Handle:g_hGameConfiguration		=	INVALID_HANDLE;
 new Handle:g_hRoundTimer			=	INVALID_HANDLE;
 new Handle:g_hTerminateRound		=	INVALID_HANDLE;
 new Handle:g_hVIPTimerHandle		=	INVALID_HANDLE;
+new Handle:g_hUMTimerHandle			=	INVALID_HANDLE;
 
 new Float:g_fVIPResQ1Min[3], Float:g_fVIPResQ1Max[3];
 new Float:g_fVIPResQ2Min[3], Float:g_fVIPResQ2Max[3];

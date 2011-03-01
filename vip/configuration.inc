@@ -9,9 +9,9 @@ public RegisterCVars()
 
 	HookConVarChange(CreateConVar("vip_forceload",			"0",								"Enables forced loading of VIPMod."),				ForceLoadChanged);
 	HookConVarChange(CreateConVar("vip_gamedescription",	"1",								"Enables the changing of SRCDS's gamedescription."),GameDescChanged);
-	HookConVarChange(CreateConVar("vip_teleport",			"0, 0, 0, 0, 0, 0",					"VIP after Escape Teleport."),						TeleportChanged);
-	HookConVarChange(CreateConVar("vip_escapezone",			"0, 0, 0, 0, 0, 0",					"VIP Placement Zone."),								VIPZone1Changed);
-	HookConVarChange(CreateConVar("vip_escapezone2",		"0, 0, 0, 0, 0, 0",					"VIP Placement Zone 2."),							VIPZone2Changed);
+	HookConVarChange(CreateConVar("vip_teleport",			"0 0 0",							"VIP after Escape Teleport."),						TeleportChanged);
+	HookConVarChange(CreateConVar("vip_escapezone",			"0 0 0 0 0 0",						"VIP Placement Zone."),								VIPZone1Changed);
+	HookConVarChange(CreateConVar("vip_escapezone2",		"0 0 0 0 0 0",						"VIP Placement Zone 2."),							VIPZone2Changed);
 	HookConVarChange(CreateConVar("vip_vipmodel",			"models/player/vip/small2/vip.mdl",	"VIP Model Path."),									ModelPathChanged);
 	HookConVarChange(CreateConVar("vip_vocalize",			"1",								"Should the plugin be Verbal?"), 					VocalizeChanged);
 	HookConVarChange(CreateConVar("vip_vipweapon",			"weapon_usp",						"Weapon given to the VIP"),							VIPWeaponChanged);
@@ -21,6 +21,8 @@ public RegisterCVars()
 	
 	g_fRoundEndDelay	=	GetConVarFloat(RoundEndDelayHandle);
 	g_fRoundDuration	=	GetConVarFloat(RoundTimeHandle) * 60;
+	CloseHandle(RoundEndDelayHandle);
+	CloseHandle(RoundTimeHandle);
 }
 
 public ForceLoadChanged(Handle:convar, const String:oldValue[], const String:newValue[])
@@ -53,6 +55,7 @@ public TeleportChanged(Handle:convar, const String:oldValue[], const String:newV
 public VIPZone1Changed(Handle:convar, const String:oldValue[], const String:newValue[])
 {
 	strcopy(g_sVIPEscapeZone1, sizeof(g_sVIPEscapeZone1), newValue);
+	g_bEscZone1Coords = false;
 	GetVIPCoords(0);
 	
 	if(g_bModIsEnabled && !DoWeHaveTheCoords())
@@ -64,6 +67,7 @@ public VIPZone1Changed(Handle:convar, const String:oldValue[], const String:newV
 public VIPZone2Changed(Handle:convar, const String:oldValue[], const String:newValue[])
 {
 	strcopy(g_sVIPEscapeZone2, sizeof(g_sVIPEscapeZone2), newValue);
+	g_bEscZone2Coords = false;
 	GetVIPCoords(1);
 
 	if(g_bModIsEnabled && !DoWeHaveTheCoords())

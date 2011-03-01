@@ -14,11 +14,33 @@ public FireUpConfigFiles()
 			new Size = sizeof(g_sSmall1);
 			for(new i; i < Size; i++)
 			{
-				AddFileToDownloadsTable(g_sSmall1[i]);
-				PrecacheModel(g_sSmall1[i]);
+				switch(FileExists(g_sSmall1[i]))
+				{
+					case 0:
+					{
+						LogError("Unable to Find %s", g_sSmall1[i]);
+					}
+					
+					case 1:
+					{
+						AddFileToDownloadsTable(g_sSmall1[i]);
+						PrecacheModel(g_sSmall1[i]);
+					}
+				}
 			}
 			
-			strcopy(g_sVIPModelPath, sizeof(g_sVIPModelPath), "models/player/vip/small2/vip.mdl");
+			switch(FileExists(g_sSmall1[2]))
+			{
+				case 0:
+				{
+					LogError("Unable to set the VIP's model to %s", g_sSmall1[2]);
+				}
+				
+				case 1:
+				{
+					strcopy(g_sVIPModelPath, sizeof(g_sVIPModelPath), g_sSmall1[2]);
+				}
+			}
 		}
 		
 		case 1: // New Mode
@@ -27,10 +49,18 @@ public FireUpConfigFiles()
 			while (!IsEndOfFile(f) && ReadFileLine(f, buffer, sizeof(buffer)))
 			{
 				TrimString(buffer);
-				if(FileExists(buffer))
+				switch(FileExists(buffer))
 				{
-					AddFileToDownloadsTable(buffer);
-					PrecacheModel(buffer);
+					case 0:
+					{
+						LogError("Unable to Find %s", buffer);
+					}
+					
+					case 1:
+					{
+						AddFileToDownloadsTable(buffer);
+						PrecacheModel(buffer);						
+					}
 				}
 			}
 			
@@ -45,10 +75,18 @@ public FireUpConfigFiles()
 		while (!IsEndOfFile(f) && ReadFileLine(f, buffer, sizeof(buffer)))
 		{
 			TrimString(buffer);
-			if(FileExists(buffer))
+			switch(FileExists(buffer))
 			{
-				AddFileToDownloadsTable(buffer);
-				PrecacheSound(buffer);
+				case 0:
+				{
+					LogError("Unable to Find %s", buffer);
+				}
+				
+				case 1:
+				{
+					AddFileToDownloadsTable(buffer);
+					PrecacheSound(buffer);						
+				}
 			}
 		}
 		
@@ -62,10 +100,18 @@ public FireUpConfigFiles()
 		while (!IsEndOfFile(f) && ReadFileLine(f, buffer, sizeof(buffer)))
 		{
 			TrimString(buffer);
-			if(FileExists(buffer))
+			switch(FileExists(buffer))
 			{
-				AddFileToDownloadsTable(buffer);
-				PrecacheDecal(buffer);
+				case 0:
+				{
+					LogError("Unable to Find %s", buffer);
+				}
+				
+				case 1:
+				{
+					AddFileToDownloadsTable(buffer);
+					PrecacheDecal(buffer);						
+				}
 			}
 		}
 		

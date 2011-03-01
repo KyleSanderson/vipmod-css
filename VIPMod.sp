@@ -6,7 +6,7 @@
 #include <sdktools>
 
 /* Defines */
-#define PLUGIN_VERSION			"1.2.2"
+#define PLUGIN_VERSION			"1.2.3"
 #define PLUGIN_DESCRIPTION		"Creates VIP style gameplay on AS_ maps. Protect the VIP, Team :3"
 #define StartMeUp 1				/* Just to make it easier for people to read this */
 #define KillMeNow 0				/* Just to make it easier for people to read this */
@@ -54,9 +54,10 @@ public VIPMod_Start() // Lets Fire it up.
 	GetVIPCoords(2);
 	AddCommandListeners(StartMeUp);
 	EventHooks(StartMeUp);
-	FireUpConfigFiles();
+	SDKHooks(StartMeUp);
 	UserMessages(StartMeUp);
-	
+	FireUpConfigFiles();
+
 	g_bModIsEnabled = true;
 }
 
@@ -67,6 +68,7 @@ public OnRoundStart()
 		GetVIPCoords(0);
 		GetVIPCoords(1);
 		GetVIPCoords(2);
+		
 		if(!DoWeHaveTheCoords())
 		{
 			return;
@@ -75,23 +77,22 @@ public OnRoundStart()
 	}
 	
 	/* Unload Proceedure */
-	SDKHooks(2);
-	SDKHooks(4);
 	FindNewVIP(KillMeNow);
 	
 	/* Lets restart the process shall we? */
 	if(FindNewVIP(StartMeUp))
 	{
-		SDKHooks(1);
 		SDKHooks(3);
 		TimerStuff(StartMeUp);
 	}
 	
+	g_bUserMessageEnabled = true;
 	g_bRoundEnd = false;
 }
 
 public OnRoundStartFreezeEnd() // When FreezeTime is up, bad name eh? lol :p
 {
+	PlayTeamSound(StartMeUp);
 	TimerStuff(2);
 }
 
@@ -111,32 +112,26 @@ public OnRoundEnd()
 public OnVIPEscape()
 {
 	SDKHooks(5);
-	if(!g_bRoundEnd)
-	{
-		FireRoundEnd(1, 0);
-	}
+	FireRoundEnd(1, 0);
 }
 
 public OnPlayerSwapTeam(client, Team)
 {
-	if(client == g_iVIPIndex)
+	if(client == g_iVIPIndex && !g_bRoundEnd)
 	{
 		if(g_bVocalize)
 		{
 			PrintToChatAll("\x04[VIPMod]\x03 The VIP (\x04%N\x03) decided to swap to the \x04%s\x03 Team.\nHow lame is that? \x04:/", client, GetProperTeamName(Team));
 			PrintToServer("[VIPMod] The VIP (%N) decided to swap to the %s Team.\nHow lame is that? :/", client, GetProperTeamName(Team));
 		}
-		
-		if(!g_bRoundEnd)
-		{
-			FireRoundEnd(KillMeNow, 0);
-		}
+
+		FireRoundEnd(KillMeNow, 0);
 	}
 }
 
 public OnClientDisconnect(client)
 {
-	if(client == g_iVIPIndex)
+	if(client == g_iVIPIndex && !g_bRoundEnd)
 	{
 		if(g_bVocalize)
 		{
@@ -144,10 +139,7 @@ public OnClientDisconnect(client)
 			PrintToServer("[VIPMod] The VIP (%N) has disconnected.", client);
 		}
 		
-		if(!g_bRoundEnd)
-		{
-			FireRoundEnd(KillMeNow, 0);
-		}
+		FireRoundEnd(KillMeNow, 0);
 	}
 }
 
@@ -166,4 +158,10 @@ public OnMapEnd()
 		g_bCoordsFound = false;
 		g_bModIsEnabled = false;
 	}
+}
+
+public Action:UnhookUserMessageTimer(Handle:Timer)
+{
+	UserMessages(KillMeNow);
+	return Plugin_Handled; // This is stupid on a Timer.
 }

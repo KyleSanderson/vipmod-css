@@ -50,7 +50,9 @@ public UserMessages(Status)
 	{
 		case 0:
 		{
-			UnhookUserMessage(GetUserMessageId("SendAudio"), SendAudioHook, true);
+			
+			g_hUMTimerHandle = INVALID_HANDLE;
+			// UnhookUserMessage(GetUserMessageId("SendAudio"), SendAudioHook, true); Doesn't function? <javalia> DONT DO THAT
 		}
 	
 		case 1:
@@ -62,11 +64,14 @@ public UserMessages(Status)
 
 public Action:SendAudioHook(UserMsg:msg_id, Handle:bf, const players[], playersNum, bool:reliable, bool:init)
 {
-	decl String:Buffer[256];
-	BfReadString(bf, Buffer, sizeof(Buffer), true);
-	if(StrEqual("radio.moveout", Buffer, false) || StrEqual("radio.letsgo", Buffer, false) || StrEqual("radio.locknload", Buffer, false) || StrEqual("radio.go", Buffer, false))
+	if(g_bModIsEnabled && g_bUserMessageEnabled)
 	{
-		return Plugin_Handled;
+		decl String:Buffer[256];
+		BfReadString(bf, Buffer, sizeof(Buffer), true);
+		if(StrEqual("radio.moveout", Buffer, false) || StrEqual("radio.letsgo", Buffer, false) || StrEqual("radio.locknload", Buffer, false) || StrEqual("radio.go", Buffer, false))
+		{
+			return Plugin_Handled;
+		}
 	}
 	return Plugin_Continue;
 }
@@ -90,17 +95,29 @@ public Action:Event_OnRoundEnd(Handle:event, const String:name[], bool:dontBroad
 {
 	if(!g_bRoundEnd)
 	{
+		if(GetEventInt(event, "reason") == 7) // Thanks GoD-Tony!
+		{
+			g_bRoundEnd = true;
+			return Plugin_Continue;
+		}
+		
 		g_bRoundEnd = true;
 		OnRoundEnd();
 		return Plugin_Continue;
 	}
+	
 	return Plugin_Handled;
 }
 
 public Event_OnRoundStartFreezeEnd(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	OnRoundStartFreezeEnd();
-	ProtectTheVIPTeamSound();
+	if(g_hUMTimerHandle != INVALID_HANDLE)
+	{
+		KillTimer(g_hUMTimerHandle);
+	}
+
+	g_hUMTimerHandle = CreateTimer(2.0, UnhookUserMessageTimer, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 public Action:RestrictBuyCommand(client, const String:command[], argc)

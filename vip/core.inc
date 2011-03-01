@@ -2,9 +2,9 @@
 
 public ClearVIPCoordinates()
 {
-	SetConVarString(FindConVar("vip_escapezone"),		"0");
-	SetConVarString(FindConVar("vip_escapezone2"),		"0");
-	SetConVarString(FindConVar("vip_teleport"),			"0");
+	SetConVarString(FindConVar("vip_escapezone"),		"0 0 0 0 0 0");
+	SetConVarString(FindConVar("vip_escapezone2"),		"0 0 0 0 0 0");
+	SetConVarString(FindConVar("vip_teleport"),			"0 0 0");
 	for(new i; i <= 2; i++)
 	{
 		g_fVIPResQ1Min[i]	= 0.0;
@@ -21,56 +21,67 @@ public GetVIPCoords(Status)
 	{
 		case 0:
 		{
-			decl String:VIPCoordsArray1[6][8];
-			ReplaceString(g_sVIPEscapeZone1, sizeof(g_sVIPEscapeZone1), "  ", " ");
-			ExplodeString(g_sVIPEscapeZone1, " ", VIPCoordsArray1, sizeof(VIPCoordsArray1), sizeof(VIPCoordsArray1[]));
-			for(new i; i < 6; i++)
+			if(!g_bEscZone1Coords && StrContains(g_sVIPEscapeZone1, "0 0 0", false) == -1 && StrContains(g_sVIPEscapeZone1, ",", false) == -1)
 			{
-				switch(i)
+				decl String:VIPCoordsArray1[6][8];
+				ReplaceString(g_sVIPEscapeZone1, sizeof(g_sVIPEscapeZone1), "  ", " ");
+				ExplodeString(g_sVIPEscapeZone1, " ", VIPCoordsArray1, sizeof(VIPCoordsArray1), sizeof(VIPCoordsArray1[]));
+				for(new i; i < 6; i++)
 				{
-					case 0, 1, 2:
+					switch(i)
 					{
-						g_fVIPResQ1Min[i] = StringToFloat(VIPCoordsArray1[i]);
-					}
+						case 0, 1, 2:
+						{
+							g_fVIPResQ1Min[i] = StringToFloat(VIPCoordsArray1[i]);
+						}
 
-					case 3, 4, 5:
-					{
-						g_fVIPResQ1Max[i-3] = StringToFloat(VIPCoordsArray1[i]);
+						case 3, 4, 5:
+						{
+							g_fVIPResQ1Max[i-3] = StringToFloat(VIPCoordsArray1[i]);
+						}
 					}
 				}
+				g_bEscZone1Coords = true;
 			}
 		}
 		
 		case 1:
 		{
 			decl String:VIPCoordsArray2[6][8];
-			ReplaceString(g_sVIPEscapeZone2, sizeof(g_sVIPEscapeZone2), "  ", " ");
-			ExplodeString(g_sVIPEscapeZone2, " ", VIPCoordsArray2, sizeof(VIPCoordsArray2), sizeof(VIPCoordsArray2[]));
-			for(new i; i < 6; i++)
+			if(!g_bEscZone2Coords && StrContains(g_sVIPEscapeZone2, "0 0 0", false) == -1 && StrContains(g_sVIPEscapeZone2, ",", false) == -1)
 			{
-				switch(i)
+				ReplaceString(g_sVIPEscapeZone2, sizeof(g_sVIPEscapeZone2), "  ", " ");
+				ExplodeString(g_sVIPEscapeZone2, " ", VIPCoordsArray2, sizeof(VIPCoordsArray2), sizeof(VIPCoordsArray2[]));
+				for(new i; i < 6; i++)
 				{
-					case 0, 1, 2:
+					switch(i)
 					{
-						g_fVIPResQ2Min[i] = StringToFloat(VIPCoordsArray2[i]);
-					}
-			
-					case 3, 4, 5:
-					{
-						g_fVIPResQ2Max[i-3] = StringToFloat(VIPCoordsArray2[i]);
+						case 0, 1, 2:
+						{
+							g_fVIPResQ2Min[i] = StringToFloat(VIPCoordsArray2[i]);
+						}
+				
+						case 3, 4, 5:
+						{
+							g_fVIPResQ2Max[i-3] = StringToFloat(VIPCoordsArray2[i]);
+						}
 					}
 				}
+				g_bEscZone2Coords = true;
 			}
 		}
 		
 		case 2:
 		{
-			decl String:VIPCoordsTeleArray[3][8];
-			ReplaceString(g_sVIPTeleportZone, sizeof(g_sVIPTeleportZone), "  ", " ");
-			ExplodeString(g_sVIPTeleportZone, " ", VIPCoordsTeleArray, sizeof(VIPCoordsTeleArray), sizeof(VIPCoordsTeleArray[]));
-			for(new i; i < 3; i++)
+			if(StrContains(g_sVIPTeleportZone, "0 0 0", false) == -1 && StrContains(g_sVIPTeleportZone, ",", false) == -1)
 			{
-				g_fVIPResQdTele[i] = StringToFloat(VIPCoordsTeleArray[i]);
+				decl String:VIPCoordsTeleArray[3][8];
+				ReplaceString(g_sVIPTeleportZone, sizeof(g_sVIPTeleportZone), "  ", " ");
+				ExplodeString(g_sVIPTeleportZone, " ", VIPCoordsTeleArray, sizeof(VIPCoordsTeleArray), sizeof(VIPCoordsTeleArray[]));
+				for(new i; i < 3; i++)
+				{
+					g_fVIPResQdTele[i] = StringToFloat(VIPCoordsTeleArray[i]);
+				}
 			}
 		}
 	}
@@ -93,13 +104,16 @@ public bool:DoWeHaveTheCoords()
 
 public FireRoundEnd(Status, Attacker)
 {
+	g_bRoundEnd = true; // Thanks GoD-Tony!
 	switch(Status)
 	{
 		case 0: // Disconnection / Team Change.
 		{
 			SDKCall(g_hTerminateRound, g_fRoundEndDelay, 2);		// The VIP has been assassinated!
 			LogPlayerEvent(g_iVIPIndex, "triggered", "VIP_Killed"); // HLX:CE Support
-			//WorkAroundSetScore(2);
+			SetTeamScore(2, GetTeamScore(2)+1);
+			SetScore(2);
+			PlayTeamSound(2);
 			SetCash(2);
 		}
 		
@@ -107,8 +121,10 @@ public FireRoundEnd(Status, Attacker)
 		{
 			SDKCall(g_hTerminateRound, g_fRoundEndDelay, 1);		// The VIP has escaped!
 			LogPlayerEvent(g_iVIPIndex, "triggered", "VIP_Escaped"); // HLX:CE Logging Support
-			//WorkAroundSetScore(3);
 			SetEntProp(g_iVIPIndex, Prop_Data, "m_MoveType", MOVETYPE_NONE);
+			SetTeamScore(3, GetTeamScore(3)+1);
+			SetScore(3);
+			PlayTeamSound(3);
 			SetCash(3);
 		}
 		
@@ -116,7 +132,9 @@ public FireRoundEnd(Status, Attacker)
 		{
 			SDKCall(g_hTerminateRound, g_fRoundEndDelay, 14);	// The VIP has not escaped!
 			LogPlayerEvent(0, "triggered", "VIP_NotEscaped"); // HLX:CE Logging Support - There's no support for this from Source? o.O
-			//WorkAroundSetScore(2);
+			SetTeamScore(2, GetTeamScore(2)+1);
+			SetScore(2);
+			PlayTeamSound(2);
 			SetCash(2);
 		}
 		
@@ -124,7 +142,9 @@ public FireRoundEnd(Status, Attacker)
 		{
 			SDKCall(g_hTerminateRound, g_fRoundEndDelay, 2);		// The VIP has been assassinated!
 			LogPlyrPlyrEvent(Attacker, g_iVIPIndex, "triggered", "VIP_Killed"); // HLX:CE Logging Support
-			//WorkAroundSetScore(2);
+			SetTeamScore(2, GetTeamScore(2)+1);
+			SetScore(2);
+			PlayTeamSound(2);
 			SetCash(2);
 		}
 	}
@@ -136,8 +156,13 @@ public bool:FindNewVIP(Status)
 	{
 		case 0: 
 		{
-			FixOldVIPArmour();
-			SDKHooks(0);
+			if(g_iVIPIndex > 0 && IsValidClient(g_iVIPIndex, 0))
+			{
+				FixOldVIPArmour();
+				SDKHooks(2);
+				SDKHooks(4);
+			}
+
 			SetVIPIndex(-1);
 		}
 		
@@ -152,7 +177,7 @@ public bool:FindNewVIP(Status)
 					{
 						if(g_bVocalize)
 						{
-							PrintToChatAll("\x04[VIPMod]\x03 Come on guys, one of you needs to be on the Counter-Terrorist Team.");
+							PrintToChatAll("\x04[VIPMod]\x03 Come on guys, one of you needs to be on the \x04Counter-Terrorist\x03 Team.");
 							PrintToServer("VIPMod] Come on guys, one of you needs to be on the Counter-Terrorist Team.");
 						}
 					}
@@ -180,7 +205,7 @@ public bool:FindNewVIP(Status)
 					
 					for (new i = 1; i <= MaxClients; i++)
 					{
-						if(i != LastVIP && IsValidClient(i, 0)  && GetClientTeam(i) == 3)
+						if(i != LastVIP && IsValidClient(i, 0) && GetClientTeam(i) == 3)
 						{
 							VIPChanceArray[PlayerCount] = i;
 							PlayerCount++;
@@ -211,6 +236,7 @@ public TimerStuff(Status)
 		{
 			g_hVIPTimerHandle	= INVALID_HANDLE;
 			g_hRoundTimer		= INVALID_HANDLE;
+			g_hUMTimerHandle	= INVALID_HANDLE;
 		}
 		
 		case 1:
@@ -257,7 +283,7 @@ public Action:CheckVIPPosition(Handle:Timer)
 	{
 		decl Float:VIPPos[3];
 		GetClientAbsOrigin(g_iVIPIndex, VIPPos);
-		if(IsPointInLocation(VIPPos, g_fVIPResQ1Min, g_fVIPResQ1Max) || IsPointInLocation(VIPPos, g_fVIPResQ2Min, g_fVIPResQ2Max))
+		if((g_bEscZone1Coords && IsPointInLocation(VIPPos, g_fVIPResQ1Min, g_fVIPResQ1Max)) || (g_bEscZone2Coords && IsPointInLocation(VIPPos, g_fVIPResQ2Min, g_fVIPResQ2Max)))
 		{
 			if(g_fVIPResQdTele[0] != 0 && g_fVIPResQdTele[1] != 0 && g_fVIPResQdTele[2] != 0)
 			{
@@ -268,7 +294,6 @@ public Action:CheckVIPPosition(Handle:Timer)
 		}
 		return Plugin_Handled;
 	}
-	
 	KillTimer(g_hVIPTimerHandle);
 	g_hVIPTimerHandle = INVALID_HANDLE;
 	
